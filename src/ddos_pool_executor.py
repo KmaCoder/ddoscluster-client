@@ -1,3 +1,4 @@
+import sys
 from multiprocessing import Pool, Manager, cpu_count
 
 from termcolor import cprint, colored
@@ -26,6 +27,8 @@ class DdosPoolProcessExecutor:
                 cprint('\n[-] Canceled by user', 'red')
             except Exception as e:
                 cprint(f'\n[-] Something failed, exiting... {e}', 'red')
+            finally:
+                self._print_executed_results()
 
     # Starts an infinite loop of executing ddos attacks alternately on each url
     def _start_single_process(self, initial_index: int):
@@ -50,4 +53,5 @@ class DdosPoolProcessExecutor:
         res = '\r[*] '
         for i, (url, count) in enumerate(self._executed_results.items()):
             res += f'{url}: {colored(count, "green")}; '
-        print(res, end='')
+        sys.stdout.write(res)
+        sys.stdout.flush()
