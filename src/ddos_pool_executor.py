@@ -56,6 +56,6 @@ class DdosPoolProcessExecutor:
     Prints results to console
     """
     def _print_executed_results(self):
-        print('\r', end='')
+        print('\r[*] ', end='')
         for i, (url, count) in enumerate(self._executed_results.items()):
-            print(f'[*] {url}: {colored(count, "green")} requests', end='; ')
+            print(f'{url}: {colored(count, "green")}; ', end='')
